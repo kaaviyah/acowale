@@ -12,13 +12,16 @@
 import { z } from 'zod'
 import { RANGE_KEYS } from '../lib/time'
 import { feedbackStatusEnum } from '../db/schema'
+import {
+  COMMENT_MAX_LENGTH,
+  COMMENT_MIN_LENGTH,
+  EMAIL_MAX_LENGTH,
+  PAGE_SIZE_DEFAULT,
+  PAGE_SIZE_MAX,
+  SEARCH_MAX_LENGTH,
+} from './limits'
 
-export const COMMENT_MIN_LENGTH = 3
-export const COMMENT_MAX_LENGTH = 2000
-export const EMAIL_MAX_LENGTH = 320
-export const SEARCH_MAX_LENGTH = 120
-export const PAGE_SIZE_DEFAULT = 20
-export const PAGE_SIZE_MAX = 100
+export * from './limits'
 
 /** Treat blank strings from an HTML form as "not provided". */
 const blankToNull = (value: unknown) =>

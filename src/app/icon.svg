@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!--
+    App icon. A speech bubble, because that is what the product collects.
+    Inline SVG rather than a generated .ico: one file, sharp at every size, and the
+    colour is the same series blue the charts use.
+  -->
+  <rect width="32" height="32" rx="8" fill="#2a78d6" />
+  <path
+    fill="#ffffff"
+    d="M9 8h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-6l-5.2 4.2A1 1 0 0 1 10 25.4V22H9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3Z"
+  />
+  <g fill="#2a78d6">
+    <circle cx="11.5" cy="15" r="1.5" />
+    <circle cx="16" cy="15" r="1.5" />
+    <circle cx="20.5" cy="15" r="1.5" />
+  </g>
+</svg>

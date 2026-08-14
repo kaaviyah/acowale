@@ -33,9 +33,10 @@ Neon instead; the driver is chosen from the scheme in
 [`src/server/db/client.ts`](src/server/db/client.ts).
 
 ```bash
-pnpm test            # 110 tests: unit, plus integration against a real Postgres
+pnpm test            # 112 tests: unit, plus integration against a real Postgres
 pnpm typecheck
 pnpm lint
+pnpm check-env       # validates configuration and flags the usual paste mistakes
 pnpm smoke           # curl the API over HTTP (BASE_URL=… to point it at production)
 pnpm hash-password 'a-new-password'
 ```
@@ -112,7 +113,7 @@ src/
 └── instrumentation.ts           validates configuration at boot
 drizzle/                         generated SQL migrations, committed
 tests/                           unit + integration + page smoke tests
-scripts/                         migrate, seed, hash-password, smoke
+scripts/                         migrate, seed, hash-password, check-env, smoke
 ```
 
 ---
@@ -142,12 +143,14 @@ Every error, from every endpoint, has the same shape — so a client needs one e
 | `POST` | `/api/auth/login` | public | Sign in. Rate limited: 10 per 15 minutes per IP |
 | `POST` | `/api/auth/logout` | admin | Clear the session cookie |
 | `GET` | `/api/auth/me` | admin | Current session |
-| `GET` | `/api/health` | public | Liveness — no dependencies, 200 whenever the process serves |
-| `GET` | `/api/health/ready` | public | Readiness — checks Postgres, **503** when it is unreachable |
+| `GET` | `/api/health` | public | Liveness — no dependencies at all, 200 whenever the process serves |
+| `GET` | `/api/health/ready` | public | Readiness — checks configuration and Postgres, **503** if either is broken |
 
-Liveness and readiness are separate on purpose. A single health check that fails because
-the database is down tells an orchestrator to replace a perfectly healthy instance, which
-turns a database blip into an application outage.
+Liveness and readiness are separate on purpose, and each carries its weight. A single check
+that fails because the database is down tells an orchestrator to replace a perfectly healthy
+instance, turning a database blip into an outage. And a liveness probe that validates
+configuration cannot report a configuration problem — it dies with the rest of the app, which
+is how you end up with 500s everywhere and no way to ask why.
 
 ```bash
 # Submit
@@ -197,11 +200,15 @@ leading-wildcard search is a guaranteed sequential scan.
 
 ## Production readiness
 
-**Configuration.** Every variable is parsed through a Zod schema on first use and asserted
-at boot from [`src/instrumentation.ts`](src/instrumentation.ts), so a missing
-`SESSION_SECRET` is a startup failure with a readable message rather than a mystery at the
-first sign-in. In production the app refuses to start if the `.env.example` placeholder
-secrets are still in place.
+**Configuration.** Every variable is parsed through a Zod schema on first use and checked
+at boot from [`src/instrumentation.ts`](src/instrumentation.ts), which logs one fatal line
+naming every variable that failed. It does not crash the process: `/api/health` stays up and
+`/api/health/ready` reports `"status":"misconfigured"`, so a bad deployment can be diagnosed
+from outside instead of returning opaque 500s everywhere. Nothing is served insecurely as a
+result — every route that needs configuration still fails closed. `pnpm check-env` gives the
+same verdict locally, and flags the mistakes that actually happen when pasting into a hosting
+dashboard: wrapping quotes, a stray variable name, a `$`-mangled password hash. In production
+the app also refuses the `.env.example` placeholder secrets.
 
 | Variable | Required | Notes |
 |---|---|---|
@@ -240,7 +247,7 @@ never carries the cookie, which is what makes the admin mutations CSRF-safe with
 separate token. Verification pins `HS256`, because accepting whatever algorithm a token
 claims is the classic JWT bypass — there's a test for that too.
 
-**Tests.** 110 of them. The integration tests run the committed migrations into PGlite and
+**Tests.** 112 of them. The integration tests run the committed migrations into PGlite and
 call the route handlers directly, so they cover validation, rate limiting, real SQL and error
 translation without a server. Two of the more useful assertions: the trend chart's values sum
 to the headline total, and searching for `100%` doesn't match every row.
@@ -286,11 +293,11 @@ and have the migration job call a Vercel deploy hook once it succeeds.
 
 | Symptom | First thing to check |
 |---|---|
-| Site returns 500s | `/api/health` — if it's 200, the process is fine and it's a route or the database |
-| Form submits fail, pages load | `/api/health/ready` — a 503 with `checks.database.ok: false` is Neon, not the app |
+| Every route returns 500 | `/api/health` — 200 there means the process is alive, so check `/api/health/ready`. `"status":"misconfigured"` means an environment variable failed validation; run `pnpm check-env` with the deployed values, or read the startup log line, which names them |
+| Form submits fail, pages load | `/api/health/ready` — a 503 with `checks.database.ok: false` is Postgres, not the app |
 | "Something went wrong" on screen | The user's reference id — grep the logs for that `requestId` or `digest` |
-| Sign-in fails for everyone | `ADMIN_PASSWORD_HASH` mangled in transit; it must start `scrypt:` and contain no `$` |
-| App won't boot after a deploy | The startup log line names the failing variable |
+| Sign-in fails for everyone | `ADMIN_PASSWORD_HASH` mangled in transit; it must start `scrypt:` and contain no `$`. `pnpm check-env` flags both |
+| Env vars set but nothing changed | Vercel injects them per deployment — you have to redeploy |
 | Legitimate users hit 429 | Several people behind one NAT share an IP; raise the limits in `RATE_LIMITS` |
 | Dashboard numbers look stale | Nothing is cached — check the period filter, not the cache |
 

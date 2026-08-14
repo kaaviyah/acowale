@@ -15,6 +15,7 @@
     "db:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --import tsx scripts/migrate.ts",
     "db:seed": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --import tsx scripts/seed.ts",
     "hash-password": "node --import tsx scripts/hash-password.ts",
+    "check-env": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --import tsx scripts/check-env.ts",
     "smoke": "bash scripts/smoke.sh"
   },
   "dependencies": {

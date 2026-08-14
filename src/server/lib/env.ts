@@ -57,6 +57,16 @@ export type Env = z.infer<typeof envSchema> & { readonly version: string }
 let cached: Env | undefined
 
 /**
+ * The running build, read without validating anything.
+ *
+ * Safe to call when configuration is broken, which is exactly when you want to know
+ * which build is live. `/api/health` depends on this and nothing else.
+ */
+export function appVersion(): string {
+  return process.env.APP_VERSION ?? process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev'
+}
+
+/**
  * Returns the validated environment, parsing it on first use.
  *
  * @throws {Error} with every failing variable listed, not just the first one —
@@ -95,10 +105,25 @@ export function getEnv(): Env {
     ...env,
     // Vercel injects the commit SHA; a short SHA is the most useful "which build
     // is live?" answer a health check can give.
-    version: env.APP_VERSION ?? process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev',
+    version: appVersion(),
   }
 
   return cached
+}
+
+/**
+ * Validates configuration, returning the failure rather than throwing.
+ *
+ * Used by the readiness probe, so a misconfigured deployment can *report* that it is
+ * misconfigured instead of returning an opaque 500 from every route.
+ */
+export function checkConfiguration(): { ok: boolean; error?: string } {
+  try {
+    getEnv()
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'invalid configuration' }
+  }
 }
 
 /** Fails the boot if configuration is invalid. Called from instrumentation. */

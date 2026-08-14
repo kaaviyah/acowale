@@ -1,12 +1,17 @@
 /**
  * Liveness probe.
  *
- * Deliberately dependency-free: it answers "is this process serving HTTP?" and
- * nothing else. If a liveness check fails because the *database* is unreachable,
- * an orchestrator will restart or replace a perfectly healthy instance and make
- * the outage worse. Dependency checks live in `/api/health/ready`.
+ * Dependency-free on purpose, and that includes configuration: it answers "is this
+ * process serving HTTP?" and nothing else.
+ *
+ * It used to read validated configuration for the version string, which meant a
+ * deployment with one bad environment variable returned 500 here too — the one
+ * endpoint whose job is to tell you what is happening died with everything else,
+ * leaving the platform's log viewer as the only diagnosis. Now a misconfigured
+ * deployment answers 200 here and reports the problem from `/api/health/ready`,
+ * while every real request still fails closed.
  */
-import { getEnv } from '@/server/lib/env'
+import { appVersion } from '@/server/lib/env'
 import { json, withApi } from '@/server/lib/with-api'
 
 /** A cached health check is worse than no health check. */
@@ -20,13 +25,10 @@ export const dynamic = 'force-dynamic'
 const instanceStartedAt = Date.now()
 
 export const GET = withApi('GET /api/health', async () => {
-  const env = getEnv()
-
   return json({
     status: 'ok',
     service: 'acowale-crm',
-    version: env.version,
-    environment: env.NODE_ENV,
+    version: appVersion(),
     instanceUptimeSeconds: Math.round((Date.now() - instanceStartedAt) / 1000),
     timestamp: new Date().toISOString(),
   })

@@ -10,16 +10,30 @@
  * widely readable; they should not quietly become a second copy of user data.
  */
 import pino from 'pino'
-import { getEnv } from './env'
+import { appVersion, getEnv } from './env'
 
 let root: pino.Logger | undefined
 
 function createLogger(): pino.Logger {
-  const env = getEnv()
+  /**
+   * Logging has to work when configuration does not — a broken deployment is
+   * precisely when you need the logs, and a logger that throws because
+   * `LOG_LEVEL` is unreadable takes the diagnosis down with the app.
+   */
+  let level = 'info'
+  let base: Record<string, unknown> = { service: 'acowale-crm', version: appVersion() }
+
+  try {
+    const env = getEnv()
+    level = env.LOG_LEVEL
+    base = { service: 'acowale-crm', version: env.version, env: env.NODE_ENV }
+  } catch {
+    base = { ...base, configuration: 'invalid' }
+  }
 
   return pino({
-    level: env.LOG_LEVEL,
-    base: { service: 'acowale-crm', version: env.version, env: env.NODE_ENV },
+    level,
+    base,
     // Pino emits numeric levels by default; log viewers are searched by humans.
     formatters: { level: (label) => ({ level: label }) },
     timestamp: pino.stdTimeFunctions.isoTime,

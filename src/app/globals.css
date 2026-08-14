@@ -1,26 +1,121 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/**
+ * Design tokens.
+ *
+ * Colour is defined once here as CSS custom properties, then exposed to Tailwind
+ * through `@theme inline`, so a utility like `bg-surface` resolves to whichever
+ * mode is active. Dark mode is a *selected* set of steps for the dark surface —
+ * not an inversion of the light values.
+ *
+ * The series and chrome values come from a validated palette: every mark colour
+ * clears the OKLCH lightness band, the chroma floor, and 3:1 contrast against the
+ * surface it is painted on, in both modes.
+ */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Surfaces */
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+
+  /* Ink */
+  --ink-primary: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+
+  /* Chart chrome */
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --hairline: rgb(11 11 11 / 0.1);
+
+  /* Data. One series, so one hue: bar length already encodes magnitude. */
+  --series-1: #2a78d6;
+  --series-1-wash: rgb(42 120 214 / 0.1);
+
+  /* Status. Reserved meaning, always shipped with a text label. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-critical: #d03b3b;
+  --success-text: #006300;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* OS preference. The `:not([data-theme='light'])` guard lets an explicit light
+   choice win over a dark OS setting, if a toggle is ever added. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:where(:not([data-theme='light'])) {
+    color-scheme: dark;
+
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+
+    --ink-primary: #ffffff;
+    --ink-secondary: #c3c2b7;
+    --ink-muted: #898781;
+
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --hairline: rgb(255 255 255 / 0.1);
+
+    --series-1: #3987e5;
+    --series-1-wash: rgb(57 135 229 / 0.14);
+
+    --status-good: #0ca30c;
+    --status-warning: #fab219;
+    --status-critical: #d03b3b;
+    --success-text: #0ca30c;
   }
 }
 
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface-1);
+
+  --color-ink: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+
+  --color-grid: var(--grid);
+  --color-baseline: var(--baseline);
+  --color-hairline: var(--hairline);
+
+  --color-series-1: var(--series-1);
+  --color-series-1-wash: var(--series-1-wash);
+
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-critical: var(--status-critical);
+  --color-success-text: var(--success-text);
+
+  /*
+   * System sans throughout. A web font would mean fetching from a third party at
+   * build time and shipping ~40 KB before the first paint; the platform already
+   * has a good UI face on every device.
+   */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--page);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A visible focus ring is not optional: the admin console is keyboard-driven. */
+:focus-visible {
+  outline: 2px solid var(--series-1);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,0 +1,1 @@
+CREATE INDEX "idx_feedback_comment_trgm" ON "feedback" USING gin ("comment" gin_trgm_ops);

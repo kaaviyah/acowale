@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1786645977825,
+      "tag": "0000_lively_microbe",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786670281973,
+      "tag": "0001_enable_pg_trgm",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786670456017,
+      "tag": "0002_feedback_comment_trgm_index",
+      "breakpoints": true
+    }
+  ]
+}

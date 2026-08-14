@@ -252,7 +252,9 @@ to the headline total, and searching for `100%` doesn't match every row.
 Vercel for the app, Neon for Postgres, deployed from `main`.
 
 1. **Neon** — create a project, then copy both connection strings. The **pooled** one is
-   `DATABASE_URL`; the **direct** one is `DATABASE_URL_UNPOOLED`.
+   `DATABASE_URL`; the **direct** one is `DATABASE_URL_UNPOOLED`. Pick the region nearest the
+   users (Singapore or Mumbai for an India-based team) — this is the one setting that cannot
+   be changed later without recreating the project.
 2. **Vercel** — import the repository, framework preset Next.js, and set every variable from
    the table above. Generate the secrets fresh:
    ```bash
@@ -260,6 +262,11 @@ Vercel for the app, Neon for Postgres, deployed from `main`.
    openssl rand -base64 24                 # RATE_LIMIT_SALT
    pnpm hash-password 'your-admin-password'
    ```
+   Then set **Settings → Functions → Region** to match the database. The default is US East,
+   and every request in this app makes at least one database round trip: with the function in
+   Virginia and Postgres in Singapore, each of those costs ~200ms before Postgres does any
+   work. Co-locating them is the single biggest latency win available here, and it is a
+   dropdown.
 3. **GitHub** — add `DATABASE_URL_UNPOOLED` as a repository secret so
    [`migrate.yml`](.github/workflows/migrate.yml) can apply migrations and seed the
    categories.

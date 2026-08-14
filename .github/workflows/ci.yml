@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to the same branch makes the previous run irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+
+    env:
+      # Placeholders so `next build` can run without production secrets. Nothing
+      # here connects to a real database: the tests use PGlite (Postgres compiled
+      # to WASM, in-process) and no page fetches data at build time.
+      #
+      # Deliberately not the values from .env.example — `src/server/lib/env.ts`
+      # refuses to boot in production with those, and that guard should stay
+      # exercisable rather than being worked around here.
+      DATABASE_URL: 'memory://'
+      SESSION_SECRET: 'ci-only-session-secret-at-least-32-characters'
+      ADMIN_EMAIL: 'ci@example.com'
+      ADMIN_PASSWORD_HASH: 'scrypt:16384:8:1:VmuMOvp+DbrwRYdAzlBaOg==:D7L8zMztIzle0GwvrjYKs86kz12UCnUWm/c6BUrroWM='
+      RATE_LIMIT_SALT: 'ci-only-rate-limit-salt'
+      LOG_LEVEL: 'silent'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the `engines` floor of Next.js 16 and local development.
+          node-version: 22
+          cache: pnpm
+
+      # --frozen-lockfile: CI must fail on a lockfile that doesn't match
+      # package.json rather than quietly resolving different versions.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      # Runs with Turbopack, the default for Next.js 16 — the same builder Vercel
+      # uses, so a build that passes here is the build that ships.
+      - name: Build
+        run: pnpm build

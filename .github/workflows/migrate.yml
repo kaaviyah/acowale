@@ -1,0 +1,70 @@
+name: Migrate
+
+# Applying migrations is a deploy step, not a build step: a build can be retried,
+# cancelled or run twice in parallel, and none of those are things you want
+# happening to a schema change.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'drizzle/**'
+      - 'scripts/migrate.ts'
+      - '.github/workflows/migrate.yml'
+  # Available for a manual re-run after fixing a failed migration.
+  workflow_dispatch:
+
+concurrency:
+  # Never two migration runs at once, and never cancel one halfway.
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply pending migrations
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # A fork or a fresh clone has no database secret; that should be a skipped
+      # job with a clear reason, not a red X that everyone learns to ignore.
+      - name: Check for a configured database
+        id: guard
+        run: |
+          if [ -z "${{ secrets.DATABASE_URL_UNPOOLED }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DATABASE_URL_UNPOOLED is not set — skipping migrations."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Migrate
+        if: steps.guard.outputs.configured == 'true'
+        # The direct (unpooled) connection: migrations need one session to hold
+        # their advisory lock, and a pooler hands out a different one per query.
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: pnpm db:migrate
+
+      - name: Seed reference data
+        if: steps.guard.outputs.configured == 'true'
+        # Idempotent (upsert on slug) and safe against production: the public form
+        # is unusable without categories, so this runs on every deploy.
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          SESSION_SECRET: 'unused-by-the-seed-script-but-required-by-env-validation'
+          ADMIN_EMAIL: 'unused@example.com'
+          ADMIN_PASSWORD_HASH: 'scrypt:16384:8:1:VmuMOvp+DbrwRYdAzlBaOg==:D7L8zMztIzle0GwvrjYKs86kz12UCnUWm/c6BUrroWM='
+          RATE_LIMIT_SALT: 'unused-by-the-seed-script'
+          LOG_LEVEL: 'silent'
+        run: pnpm db:seed

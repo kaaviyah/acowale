@@ -5,14 +5,11 @@
  *
  * Posts to `/api/auth/login`, which sets an HttpOnly cookie the browser sends
  * automatically from then on — nothing about the session is readable from here, by
- * design. On success it navigates with `router.replace` so the login page doesn't
- * sit in the back-button history of an authenticated session.
+ * design.
  */
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -23,6 +20,10 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
     setSubmitting(true)
     setError(null)
 
+    // Tracks whether we're leaving the page, so the button isn't re-enabled for a
+    // frame while the browser navigates.
+    let leaving = false
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -31,10 +32,21 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
       })
 
       if (response.ok) {
-        router.replace(redirectTo)
-        // The dashboard is a server component; refresh so it renders with the
-        // session cookie now attached.
-        router.refresh()
+        leaving = true
+        /**
+         * A full navigation, deliberately — not `router.replace`.
+         *
+         * Next's client router cache is keyed by URL and knows nothing about who is
+         * asking. Arriving here from `/admin` means the cache already holds that
+         * route's response from *before* sign-in, which was the proxy's redirect
+         * back to this page. A client-side navigation replays it and bounces the
+         * person straight back to the login form; only a manual refresh escapes.
+         *
+         * Signing in changes the identity behind every subsequent request, so every
+         * cached payload is stale by definition. Crossing an identity boundary is
+         * exactly when a full page load is the right tool.
+         */
+        window.location.replace(redirectTo)
         return
       }
 
@@ -49,7 +61,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
     } catch {
       setError('We could not reach the server. Please check your connection.')
     } finally {
-      setSubmitting(false)
+      if (!leaving) setSubmitting(false)
     }
   }
 

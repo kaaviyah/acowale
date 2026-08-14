@@ -19,12 +19,41 @@ describe('session tokens', () => {
     expect(claims?.expiresAt.getTime()).toBe(Math.floor(expiresAt.getTime() / 1000) * 1000)
   })
 
-  it('rejects a tampered token', async () => {
+  it('rejects a token with a tampered signature', async () => {
     const { token } = await createSessionToken('admin@acowale.test')
-    // Flip the last character of the signature.
-    const tampered = token.slice(0, -1) + (token.at(-1) === 'A' ? 'B' : 'A')
+    const [header, payload, signature] = token.split('.')
 
-    await expect(verifySessionToken(tampered)).resolves.toBeNull()
+    /**
+     * Tampering with the *first* character of the signature, not the last.
+     *
+     * A 32-byte HMAC is 43 base64url characters, so the final character carries
+     * only 4 significant bits and several different values decode to the same
+     * bytes. Flipping it is not reliably a change at all — an earlier version of
+     * this test did exactly that and failed intermittently, because roughly a third
+     * of the time the "tampered" token was byte-identical to the original and
+     * verification correctly succeeded. The first character always maps onto the
+     * first byte.
+     */
+    const tampered = (signature[0] === 'A' ? 'B' : 'A') + signature.slice(1)
+
+    await expect(verifySessionToken(`${header}.${payload}.${tampered}`)).resolves.toBeNull()
+  })
+
+  it('rejects a token whose claims were rewritten', async () => {
+    // The attack that actually matters: keep a valid signature, swap the identity.
+    const { token } = await createSessionToken('admin@acowale.test')
+    const [header, , signature] = token.split('.')
+
+    const forged = Buffer.from(
+      JSON.stringify({
+        email: 'attacker@example.com',
+        iss: 'acowale-crm',
+        aud: 'acowale-crm-admin',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    ).toString('base64url')
+
+    await expect(verifySessionToken(`${header}.${forged}.${signature}`)).resolves.toBeNull()
   })
 
   it('rejects an expired token', async () => {

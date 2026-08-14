@@ -134,7 +134,13 @@ describe('session lifecycle', () => {
   it('rejects a tampered cookie', async () => {
     await attemptLogin(CORRECT)
     const token = cookiesStub().get(SESSION_COOKIE_NAME)!.value
-    cookieJar.set(SESSION_COOKIE_NAME, `${token.slice(0, -2)}xx`)
+
+    // Alter the first character of the signature: the trailing characters of a
+    // base64url HMAC carry padding bits, so changing those is not guaranteed to
+    // change the decoded bytes. See tests/unit/session.test.ts.
+    const [header, payload, signature] = token.split('.')
+    const tampered = `${header}.${payload}.${signature[0] === 'A' ? 'B' : 'A'}${signature.slice(1)}`
+    cookieJar.set(SESSION_COOKIE_NAME, tampered)
 
     expect((await me(new Request('http://localhost/api/auth/me'), {})).status).toBe(401)
   })

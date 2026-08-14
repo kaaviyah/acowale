@@ -249,14 +249,22 @@ failure was in my fixture, not in my expectation.
 The fix was to backdate the seeded row, so `createdAt` is genuinely in the past and
 `updatedAt > createdAt` proves what it claims. Same green tick, actual meaning behind it.
 
-I saw the same pattern twice more and pushed back the same way. A first draft of
+I saw the same pattern three times more and pushed back the same way. A first draft of
 `findActiveCategoryIdBySlug` ran a second query that checked whether *any* category was
 active rather than the one it had just found — plausible-looking code that would have accepted
-submissions against retired categories, which no test I had yet written would have caught. And
-the first trend query was missing its window bound, so the chart could out-sum its own
-headline number. The pattern across all three: the generated code was confident, syntactically
-perfect, and subtly wrong in the direction of "still passes". Being the person who checks the
-claim rather than the syntax is where the value is now.
+submissions against retired categories, which no test I had yet written would have caught. The
+first trend query was missing its window bound, so the chart could out-sum its own headline
+number. And a generated test tampered with a JWT by flipping the **last** character of the
+signature — but a 32-byte HMAC is 43 base64url characters, so that final character carries
+only 4 significant bits and several values decode to identical bytes. The test failed roughly
+one run in three, on a token that genuinely had not changed. The tempting move there is to
+re-run until it is green; the correct one is to tamper with the first character, which always
+maps onto a real byte, and to add the test that was actually missing — a token with rewritten
+claims and an untouched signature, which is the attack that matters.
+
+The pattern across all four: the generated code was confident, syntactically perfect, and
+wrong in a direction that does not announce itself. Being the person who checks the claim
+rather than the syntax is where the value is now.
 
 ---
 

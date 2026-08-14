@@ -33,7 +33,7 @@ Neon instead; the driver is chosen from the scheme in
 [`src/server/db/client.ts`](src/server/db/client.ts).
 
 ```bash
-pnpm test            # 109 tests: unit, plus integration against a real Postgres
+pnpm test            # 110 tests: unit, plus integration against a real Postgres
 pnpm typecheck
 pnpm lint
 pnpm smoke           # curl the API over HTTP (BASE_URL=… to point it at production)
@@ -240,7 +240,7 @@ never carries the cookie, which is what makes the admin mutations CSRF-safe with
 separate token. Verification pins `HS256`, because accepting whatever algorithm a token
 claims is the classic JWT bypass — there's a test for that too.
 
-**Tests.** 109 of them. The integration tests run the committed migrations into PGlite and
+**Tests.** 110 of them. The integration tests run the committed migrations into PGlite and
 call the route handlers directly, so they cover validation, rate limiting, real SQL and error
 translation without a server. Two of the more useful assertions: the trend chart's values sum
 to the headline total, and searching for `100%` doesn't match every row.
@@ -331,7 +331,12 @@ reading did.
    `fonts.googleapis.com`.* Both pushed the solution somewhere better: verification runs by
    invoking route handlers and page components directly (fast, no server, and it covers error
    paths a browser click-through would miss), and the UI uses the system font stack — no
-   build-time dependency on a third party, and no font download before first paint.
+   build-time dependency on a third party, and no font download before first paint. What it
+   did hide is worth naming: a post-login bounce back to the sign-in page, visible only in a
+   real browser. Next's client router cache is keyed by URL with no notion of identity, so it
+   replayed the pre-login redirect from `/admin`. Crossing an identity boundary now does a full
+   page load, on sign-out as well as sign-in — which also stops a cached dashboard payload
+   sitting in memory for the back button to find on a shared machine.
 
 **What I would do next**, in order: unify the list filters into the analytics query so one
 filter row scopes everything; keyset pagination to replace `OFFSET`; a `sessions` table so

@@ -33,9 +33,7 @@ const BAR_COLORS = [
 export function CategoryBars({ rows, total }: CategoryBarsProps) {
   if (total === 0) {
     return (
-      <p className="py-8 text-center text-sm text-ink-secondary">
-        📊 No feedback in this period yet.
-      </p>
+      <p className="py-6 text-center text-xs text-ink-secondary">No feedback in this period yet.</p>
     )
   }
 
@@ -44,22 +42,22 @@ export function CategoryBars({ rows, total }: CategoryBarsProps) {
   const largest = Math.max(...rows.map((row) => row.count), 1)
 
   return (
-    <ol className="space-y-4">
+    <ol className="space-y-2.5">
       {rows.map((row, index) => (
         <li key={row.slug} className="group">
-          <div className="flex items-baseline justify-between gap-3 text-sm mb-2">
-            <span className="truncate text-ink font-bold">{row.label}</span>
-            <div className="shrink-0 tabular-nums text-right">
-              <span className="font-black text-lg text-series-1">{formatCount(row.count)}</span>
-              <span className="ml-2 text-ink-muted font-bold">{formatShare(row.share)}</span>
-            </div>
+          <div className="flex items-baseline justify-between gap-3 text-xs">
+            <span className="truncate font-medium text-ink">{row.label}</span>
+            <span className="shrink-0 tabular-nums text-ink-secondary">
+              {formatCount(row.count)}
+              <span className="ml-1.5 text-ink-muted">{formatShare(row.share)}</span>
+            </span>
           </div>
 
-          <div className="h-4 w-full rounded-full bg-gradient-to-r from-ink-muted/20 to-ink-muted/5 overflow-hidden shadow-inner">
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-grid">
             <div
-              className={`h-4 rounded-full bg-gradient-to-r ${
+              className={`h-2 rounded-full bg-gradient-to-r ${
                 BAR_COLORS[index % BAR_COLORS.length]
-              } transition-all duration-500 group-hover:shadow-lg group-hover:shadow-blue-500/40 transform group-hover:scale-y-125`}
+              } transition-[filter] group-hover:brightness-110`}
               style={{ width: `${Math.max((row.count / largest) * 100, row.count > 0 ? 2 : 0)}%` }}
             />
           </div>

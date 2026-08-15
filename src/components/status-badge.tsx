@@ -21,19 +21,19 @@ const DOT_CLASS: Record<FeedbackStatus, string> = {
 }
 
 const BADGE_CLASS: Record<FeedbackStatus, string> = {
-  new: 'bg-series-1/15 border-series-1/45 text-series-1',
-  in_progress: 'bg-status-warning/20 border-status-warning/50 text-status-warning',
-  resolved: 'bg-status-good/20 border-status-good/50 text-status-good',
+  new: 'bg-series-1/12 border-series-1/35 text-series-1',
+  in_progress: 'bg-status-warning/15 border-status-warning/40 text-status-warning',
+  resolved: 'bg-status-good/15 border-status-good/40 text-status-good',
 }
 
 export function StatusBadge({ status }: { status: FeedbackStatus }) {
   return (
     <span
-      className={`inline-flex items-center gap-2.5 rounded-full border-2 px-4 py-2.5 text-sm font-bold whitespace-nowrap ${BADGE_CLASS[status]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${BADGE_CLASS[status]}`}
     >
       <span
         aria-hidden="true"
-        className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT_CLASS[status]} shadow-md`}
+        className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT_CLASS[status]}`}
       />
       {STATUS_LABELS[status]}
     </span>

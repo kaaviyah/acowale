@@ -33,9 +33,9 @@ export function FeedbackTable({
 }: FeedbackTableProps) {
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-series-1/20 bg-gradient-to-br from-series-1/10 to-series-1/5 p-12 text-center shadow-lg shadow-series-1/10">
-        <p className="text-2xl font-bold text-ink">📭 Nothing matches these filters</p>
-        <p className="mt-2 text-sm text-ink-secondary">
+      <div className="rounded-xl border border-series-1/25 bg-surface p-8 text-center">
+        <p className="text-sm font-bold text-ink">Nothing matches these filters</p>
+        <p className="mt-1 text-xs text-ink-secondary">
           Try a wider period, or clear the search term.
         </p>
       </div>
@@ -46,31 +46,34 @@ export function FeedbackTable({
   const lastOnPage = Math.min(page * pageSize, total)
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-series-1/30 bg-gradient-to-b from-surface to-series-1/5 shadow-xl shadow-series-1/15">
+    <div className="overflow-hidden rounded-xl border border-series-1/25 bg-surface">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <caption className="sr-only">
             Feedback submissions, {firstOnPage} to {lastOnPage} of {total}
           </caption>
-          <thead className="border-b-2 border-series-1/30 bg-gradient-to-r from-series-1/15 via-series-1/10 to-series-1/5 text-left text-ink">
+          <thead className="border-b border-series-1/25 bg-series-1/8 text-left text-ink-secondary">
             <tr>
-              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
-                💭 Feedback
+              <th scope="col" className="px-3 py-2.5 text-xs font-bold tracking-wide uppercase">
+                Feedback
               </th>
-              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
-                📌 Category
+              <th scope="col" className="px-3 py-2.5 text-xs font-bold tracking-wide uppercase">
+                Category
               </th>
-              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
-                ⭐ Rating
+              <th scope="col" className="px-3 py-2.5 text-xs font-bold tracking-wide uppercase">
+                Rating
               </th>
-              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
-                📅 Received
+              <th scope="col" className="px-3 py-2.5 text-xs font-bold tracking-wide uppercase">
+                Received
               </th>
-              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
-                🏷️ Status
+              <th scope="col" className="px-3 py-2.5 text-xs font-bold tracking-wide uppercase">
+                Status
               </th>
-              <th scope="col" className="px-5 py-4 text-right font-black text-sm uppercase tracking-wider">
-                ⚙️ Action
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-right text-xs font-bold tracking-wide uppercase"
+              >
+                Change
               </th>
             </tr>
           </thead>
@@ -78,40 +81,47 @@ export function FeedbackTable({
             {items.map((item) => (
               <tr
                 key={item.id}
-                className="border-b border-series-1/10 hover:bg-gradient-to-r hover:from-series-1/8 hover:to-series-1/3 transition-all hover:shadow-md last:border-b-0 align-top"
+                className="border-b border-series-1/10 align-top transition-colors last:border-b-0 hover:bg-series-1/5"
               >
-                <td className="max-w-md px-5 py-4">
-                  <p className="text-ink font-bold line-clamp-2">{item.comment}</p>
+                <td className="max-w-md px-3 py-2.5">
+                  <p className="text-ink">{item.comment}</p>
                   {item.email && (
-                    <p className="mt-2 text-xs font-semibold">
-                      <a href={`mailto:${item.email}`} className="text-series-1 underline underline-offset-2 hover:text-series-1/70">
-                        📧 {item.email}
+                    <p className="mt-0.5 text-xs">
+                      {/* Contactable submissions are the actionable ones. */}
+                      <a
+                        href={`mailto:${item.email}`}
+                        className="text-series-1 underline underline-offset-2"
+                      >
+                        {item.email}
                       </a>
                     </p>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-5 py-4 text-ink font-bold">
-                  <span className="inline-block px-3 py-1 rounded-full bg-series-1/10 border border-series-1/20">
+                <td className="px-3 py-2.5 whitespace-nowrap">
+                  <span className="rounded-full border border-series-1/20 bg-series-1/10 px-2 py-0.5 text-xs font-medium text-ink-secondary">
                     {item.categoryLabel}
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-5 py-4 tabular-nums">
+                <td className="px-3 py-2.5 whitespace-nowrap tabular-nums text-ink-secondary">
                   {item.rating === null ? (
-                    <span className="text-ink-muted font-bold">—</span>
+                    <span className="text-ink-muted">—</span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-status-warning/15 border border-status-warning/30">
-                      <span aria-hidden="true" className="text-lg">⭐</span>
-                      <span className="font-bold text-status-warning">{item.rating}/5</span>
-                    </span>
+                    <>
+                      <span aria-hidden="true" className="text-status-warning">
+                        ★
+                      </span>{' '}
+                      {item.rating}
+                      <span className="sr-only"> out of 5</span>
+                    </>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-5 py-4 tabular-nums font-medium text-ink-secondary">
-                  <time dateTime={item.createdAt} className="font-bold">{formatDateTime(item.createdAt)}</time>
+                <td className="px-3 py-2.5 whitespace-nowrap tabular-nums text-ink-secondary">
+                  <time dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
                 </td>
-                <td className="whitespace-nowrap px-5 py-4">
+                <td className="px-3 py-2.5 whitespace-nowrap">
                   <StatusBadge status={item.status} />
                 </td>
-                <td className="px-5 py-4 text-right">
+                <td className="px-3 py-2.5 text-right">
                   <StatusControl
                     id={item.id}
                     status={item.status}
@@ -126,36 +136,36 @@ export function FeedbackTable({
 
       <nav
         aria-label="Pagination"
-        className="flex items-center justify-between gap-4 border-t-2 border-series-1/20 bg-gradient-to-r from-series-1/10 to-series-1/5 px-5 py-4 text-sm"
+        className="flex items-center justify-between gap-4 border-t border-series-1/25 bg-series-1/5 px-3 py-2.5 text-xs"
       >
-        <p className="text-ink-secondary tabular-nums font-bold">
-          Showing {formatCount(firstOnPage)}–{formatCount(lastOnPage)} of {formatCount(total)}
+        <p className="tabular-nums text-ink-secondary">
+          {formatCount(firstOnPage)}–{formatCount(lastOnPage)} of {formatCount(total)}
         </p>
         <div className="flex gap-2">
           {page > 1 ? (
             <Link
               href={pageHref(page - 1)}
               scroll={false}
-              className="rounded-lg border-2 border-series-1/40 bg-gradient-to-r from-series-1/15 to-series-1/5 px-4 py-2 text-series-1 font-bold hover:border-series-1/60 hover:bg-series-1/20 transition-all hover:shadow-md"
+              className="rounded-lg border border-series-1/30 bg-series-1/10 px-3 py-1.5 font-semibold text-series-1 transition-colors hover:border-series-1/50 hover:bg-series-1/20"
             >
-              ← Previous
+              Previous
             </Link>
           ) : (
-            <span className="rounded-lg border-2 border-series-1/20 px-4 py-2 text-ink-muted font-bold bg-ink-muted/5">
-              ← Previous
+            <span className="rounded-lg border border-hairline px-3 py-1.5 font-semibold text-ink-muted">
+              Previous
             </span>
           )}
           {hasMore ? (
             <Link
               href={pageHref(page + 1)}
               scroll={false}
-              className="rounded-lg border-2 border-series-1/40 bg-gradient-to-r from-series-1/15 to-series-1/5 px-4 py-2 text-series-1 font-bold hover:border-series-1/60 hover:bg-series-1/20 transition-all hover:shadow-md"
+              className="rounded-lg border border-series-1/30 bg-series-1/10 px-3 py-1.5 font-semibold text-series-1 transition-colors hover:border-series-1/50 hover:bg-series-1/20"
             >
-              Next →
+              Next
             </Link>
           ) : (
-            <span className="rounded-lg border-2 border-series-1/20 px-4 py-2 text-ink-muted font-bold bg-ink-muted/5">
-              Next →
+            <span className="rounded-lg border border-hairline px-3 py-1.5 font-semibold text-ink-muted">
+              Next
             </span>
           )}
         </div>

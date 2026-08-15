@@ -52,8 +52,8 @@ export function PeriodPicker({ filters }: { filters: DashboardFilters }) {
   }
 
   return (
-    <div className="w-full sm:w-56">
-      <label className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase">
+    <div className="w-full sm:w-44">
+      <label className="mb-1 block text-xs font-semibold tracking-wide text-ink-secondary uppercase">
         Period
       </label>
       <CustomSelect
@@ -61,7 +61,7 @@ export function PeriodPicker({ filters }: { filters: DashboardFilters }) {
         value={filters.range}
         onChange={handlePeriodChange}
         disabled={isPending}
-        className="border-series-1/50 from-series-1/20 to-series-1/10 font-bold text-series-1"
+        className="font-semibold text-series-1"
         options={RANGE_KEYS.map((key) => ({ value: key, label: RANGE_LABELS[key] }))}
       />
     </div>
@@ -114,12 +114,9 @@ export function ListFilters({
   }
 
   return (
-    <div className="flex w-full flex-wrap items-end gap-3">
-      <div className="min-w-48 flex-1">
-        <label
-          id="category-label"
-          className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase"
-        >
+    <div className="flex w-full flex-wrap items-end gap-2">
+      <div className="min-w-40 flex-1">
+        <label className="mb-1 block text-xs font-semibold tracking-wide text-ink-secondary uppercase">
           Category
         </label>
         <CustomSelect
@@ -134,8 +131,8 @@ export function ListFilters({
         />
       </div>
 
-      <div className="min-w-48 flex-1">
-        <label className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase">
+      <div className="min-w-40 flex-1">
+        <label className="mb-1 block text-xs font-semibold tracking-wide text-ink-secondary uppercase">
           Status
         </label>
         <CustomSelect
@@ -150,10 +147,10 @@ export function ListFilters({
         />
       </div>
 
-      <div className="min-w-48 flex-1">
+      <div className="min-w-40 flex-1">
         <label
           htmlFor="q"
-          className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase"
+          className="mb-1 block text-xs font-semibold tracking-wide text-ink-secondary uppercase"
         >
           Search comments
         </label>
@@ -165,7 +162,7 @@ export function ListFilters({
           maxLength={SEARCH_MAX_LENGTH}
           onChange={handleSearchChange}
           placeholder="dark mode, invoice, timeout…"
-          className="w-full rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/10 to-series-1/5 px-4 py-3 text-base font-medium text-ink transition-all placeholder:text-ink-muted hover:border-series-1/60 focus:border-series-1 focus:outline-none"
+          className="w-full rounded-lg border border-series-1/35 bg-series-1/8 px-3 py-2 text-sm font-medium text-ink transition-colors placeholder:text-ink-muted hover:border-series-1/55 focus:border-series-1 focus:outline-none"
         />
       </div>
 
@@ -174,7 +171,7 @@ export function ListFilters({
           type="button"
           onClick={() => apply({ q: undefined, category: undefined, status: undefined })}
           disabled={isPending}
-          className="rounded-xl border-2 border-status-critical/40 bg-gradient-to-r from-status-critical/20 to-status-critical/10 px-6 py-3 text-sm font-black text-status-critical transition-all hover:border-status-critical/60 hover:from-status-critical/30 hover:to-status-critical/20 disabled:opacity-50"
+          className="rounded-lg border border-status-critical/35 bg-status-critical/10 px-3 py-2 text-sm font-semibold text-status-critical transition-colors hover:border-status-critical/55 hover:bg-status-critical/15 disabled:opacity-50"
         >
           Clear
         </button>

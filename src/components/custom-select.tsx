@@ -149,13 +149,13 @@ export function CustomSelect({
         onClick={() => (isOpen ? close() : open())}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className={`flex w-full items-center justify-between gap-2 rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/10 to-series-1/5 px-4 py-3 text-left text-base font-medium text-ink transition-all hover:border-series-1/60 focus-visible:border-series-1 disabled:opacity-50 ${className}`}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-series-1/35 bg-series-1/8 px-3 py-2 text-left text-sm font-medium text-ink transition-colors hover:border-series-1/55 focus-visible:border-series-1 disabled:opacity-50 ${className}`}
       >
         <span className="truncate">{selectedLabel}</span>
         <svg
           aria-hidden="true"
           viewBox="0 0 12 12"
-          className={`h-3 w-3 shrink-0 text-series-1 transition-transform ${
+          className={`h-2.5 w-2.5 shrink-0 text-series-1 transition-transform ${
             isOpen ? 'rotate-180' : ''
           }`}
         >
@@ -172,7 +172,7 @@ export function CustomSelect({
           aria-activedescendant={optionId(activeIndex)}
           tabIndex={-1}
           onKeyDown={handleKeyDown}
-          className="absolute top-full right-0 left-0 z-50 mt-2 max-h-64 overflow-y-auto rounded-xl border-2 border-series-1/40 bg-surface py-1 shadow-xl shadow-series-1/20"
+          className="absolute top-full right-0 left-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border border-series-1/35 bg-surface py-1 shadow-lg shadow-black/10"
         >
           {options.map((option, index) => {
             const isSelected = option.value === value
@@ -186,12 +186,12 @@ export function CustomSelect({
                 aria-selected={isSelected}
                 onClick={() => commit(index)}
                 onMouseEnter={() => setActiveIndex(index)}
-                className={`flex cursor-pointer items-center gap-2 px-4 py-2.5 font-medium whitespace-nowrap transition-colors ${
-                  isSelected ? 'text-series-1' : 'text-ink'
-                } ${isActive ? 'bg-series-1/12' : ''}`}
+                className={`flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-sm whitespace-nowrap transition-colors ${
+                  isSelected ? 'font-semibold text-series-1' : 'text-ink'
+                } ${isActive ? 'bg-series-1/10' : ''}`}
               >
                 {/* Reserved width, so the label doesn't shift when the tick appears. */}
-                <span aria-hidden="true" className="w-3 shrink-0 font-black text-series-1">
+                <span aria-hidden="true" className="w-2.5 shrink-0 text-series-1">
                   {isSelected ? '✓' : ''}
                 </span>
                 <span className="truncate">{option.label}</span>

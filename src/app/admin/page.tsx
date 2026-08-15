@@ -80,21 +80,21 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
   const periodLabel = RANGE_LABELS[range].toLowerCase()
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-series-1/20 to-series-1/10 border border-series-1/30 mb-4">
-            <p className="text-xs font-black uppercase tracking-widest text-series-1">📊 Dashboard</p>
-          </div>
-          <h1 className="text-4xl font-black tracking-tight text-ink bg-gradient-to-r from-series-1 to-series-1/60 bg-clip-text text-transparent">Overview</h1>
-          <p className="mt-2 text-base text-ink-secondary font-medium">
-            Customer feedback for the <span className="font-bold text-series-1">{periodLabel}</span>, by <span className="font-bold">{summary.timeZone.replace('_', ' ')}</span> days.
+          <h1 className="text-xl font-bold tracking-tight text-ink">Overview</h1>
+          <p className="mt-1 text-sm text-ink-secondary">
+            Customer feedback for the {periodLabel}, by {summary.timeZone.replace('_', ' ')} days.
           </p>
         </div>
         <PeriodPicker filters={filters} />
       </div>
 
-      <section aria-label="Headline numbers" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-10">
+      <section
+        aria-label="Headline numbers"
+        className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      >
         <KpiTile
           label="Total feedback"
           value={formatCount(summary.totals.count)}
@@ -136,18 +136,15 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
         />
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-5 mb-10">
+      <div className="mb-6 grid gap-3 lg:grid-cols-5">
         <section
           aria-labelledby="trend-heading"
-          className="rounded-2xl border-2 border-series-1/30 bg-gradient-to-br from-surface via-surface to-series-1/5 p-7 shadow-xl shadow-series-1/15 lg:col-span-3"
+          className="rounded-xl border border-series-1/25 bg-surface p-4 lg:col-span-3"
         >
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">📈</span>
-            <h2 id="trend-heading" className="font-black text-ink text-lg">
-              Submissions per day
-            </h2>
-          </div>
-          <p className="mt-1 mb-4 text-sm text-ink-secondary font-medium">
+          <h2 id="trend-heading" className="text-sm font-bold text-ink">
+            Submissions per day
+          </h2>
+          <p className="mt-0.5 mb-3 text-xs text-ink-secondary">
             {RANGE_LABELS[range]}, in {summary.timeZone.replace('_', ' ')} time
           </p>
           <TrendChart points={summary.trend} />
@@ -155,15 +152,12 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
 
         <section
           aria-labelledby="category-heading"
-          className="rounded-2xl border-2 border-series-1/30 bg-gradient-to-br from-surface via-surface to-series-1/5 p-7 shadow-xl shadow-series-1/15 lg:col-span-2"
+          className="rounded-xl border border-series-1/25 bg-surface p-4 lg:col-span-2"
         >
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">🎯</span>
-            <h2 id="category-heading" className="font-black text-ink text-lg">
-              Where feedback comes from
-            </h2>
-          </div>
-          <p className="mt-1 mb-5 text-sm text-ink-secondary font-medium">
+          <h2 id="category-heading" className="text-sm font-bold text-ink">
+            Where feedback comes from
+          </h2>
+          <p className="mt-0.5 mb-3 text-xs text-ink-secondary">
             Bars are scaled to the busiest category.
           </p>
           <CategoryBars rows={summary.byCategory} total={summary.totals.count} />
@@ -171,15 +165,13 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
       </div>
 
       <section aria-labelledby="submissions-heading">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">💬</span>
-              <h2 id="submissions-heading" className="font-black text-ink text-lg">
-                Recent Submissions
-              </h2>
-            </div>
-            <p className="mt-1 text-sm text-ink-secondary font-medium">
+            <h2 id="submissions-heading" className="text-sm font-bold text-ink">
+              Recent submissions
+            </h2>
+            <p className="mt-0.5 max-w-prose text-xs text-ink-secondary">
+              {/* Say plainly that this list is scoped differently from the charts. */}
               Every submission, newest first. These filters apply to this list only — the charts
               above always describe the whole period.
             </p>

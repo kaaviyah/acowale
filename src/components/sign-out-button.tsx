@@ -32,7 +32,7 @@ export function SignOutButton() {
       type="button"
       onClick={() => void signOut()}
       disabled={busy}
-      className="rounded-xl border-2 border-status-critical/40 bg-gradient-to-r from-status-critical/15 to-status-critical/5 px-4 py-2.5 text-sm font-bold text-status-critical transition-all hover:border-status-critical/60 hover:from-status-critical/25 hover:to-status-critical/10 disabled:opacity-60"
+      className="rounded-lg border border-status-critical/35 bg-status-critical/10 px-3 py-1.5 text-xs font-semibold text-status-critical transition-colors hover:border-status-critical/55 hover:bg-status-critical/15 disabled:opacity-60"
     >
       {busy ? 'Signing out…' : 'Sign out'}
     </button>

@@ -19,6 +19,7 @@ interface FeedbackTableProps {
   pageSize: number
   total: number
   hasMore: boolean
+  /** Builds a link to another page, preserving the active filters. */
   pageHref: (page: number) => string
 }
 

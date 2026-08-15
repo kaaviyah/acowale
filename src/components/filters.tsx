@@ -26,7 +26,7 @@ import { RANGE_LABELS, STATUS_LABELS } from '@/lib/format'
 import { RANGE_KEYS } from '@/server/lib/time'
 import { SEARCH_MAX_LENGTH } from '@/server/schemas/limits'
 import type { CategoryOption } from '@/server/repos/categories'
-import { CustomSelect } from './custom-select'
+import { CustomSelect, SELECT_TRIGGER_APPEARANCE } from './custom-select'
 
 export interface DashboardFilters {
   range: string
@@ -61,7 +61,7 @@ export function PeriodPicker({ filters }: { filters: DashboardFilters }) {
         value={filters.range}
         onChange={handlePeriodChange}
         disabled={isPending}
-        className="font-semibold text-series-1"
+        className={`${SELECT_TRIGGER_APPEARANCE} font-semibold text-series-1`}
         options={RANGE_KEYS.map((key) => ({ value: key, label: RANGE_LABELS[key] }))}
       />
     </div>

@@ -8,7 +8,7 @@
  * against the deployed URL is for.
  */
 import { and, eq } from 'drizzle-orm'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { categories, feedback } from '@/server/db/schema'
 import { createTestDatabase, resetTestData, seedFeedback, type TestDatabase } from '../helpers/db'
 import { cookieJar, signInAsAdmin } from '../helpers/cookies'
@@ -34,6 +34,11 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetTestData(database.db)
   cookieJar.clear()
+})
+
+// A no-op unless a test pinned the clock, and it still runs when one fails.
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 /** Each test gets its own address so rate-limit counters never leak between them. */
@@ -170,7 +175,21 @@ describe('POST /api/feedback', () => {
     expect(await database.db.select().from(feedback)).toHaveLength(1)
   })
 
+  /**
+   * The clock is pinned mid-window for the burst.
+   *
+   * `enforceRateLimits` floors the wall clock to an epoch-aligned window, so six
+   * requests that straddle a minute boundary are counted against two separate
+   * counters and the sixth is legitimately accepted — the documented fixed-window
+   * trade-off, not a defect. On the real clock this test fails whenever the burst
+   * happens to cross a boundary, which is rare enough to look like a fluke and
+   * frequent enough to train everyone to re-run CI.
+   */
   it('rate limits after five submissions from one address', async () => {
+    // Only `Date` is faked: PGlite's own timers and promises must keep running.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(Math.floor(Date.now() / 60_000) * 60_000 + 30_000))
+
     const address = nextAddress()
 
     for (let attempt = 1; attempt <= 5; attempt += 1) {

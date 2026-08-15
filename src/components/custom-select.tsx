@@ -20,6 +20,14 @@ export interface SelectOption {
   label: string
 }
 
+/**
+ * How the trigger looks, kept apart from the classes that make it work so a caller
+ * can restyle it wholesale — passing a second `rounded-*` or `border-*` instead
+ * leaves it to Tailwind's source order to decide which one wins.
+ */
+export const SELECT_TRIGGER_APPEARANCE =
+  'rounded-lg border border-series-1/35 bg-series-1/8 px-3 py-2 text-sm font-medium hover:border-series-1/55 focus-visible:border-series-1'
+
 interface CustomSelectProps {
   value: string
   onChange: (value: string) => void
@@ -28,8 +36,14 @@ interface CustomSelectProps {
   disabled?: boolean
   /** Accessible name, since there is no `<select>` for a `<label>` to point at. */
   label?: string
-  /** Extra classes for the trigger, e.g. a stronger accent for the period picker. */
+  /** Appearance of the trigger; replaces {@link SELECT_TRIGGER_APPEARANCE}. */
   className?: string
+  /** Put on the trigger, so a `<label htmlFor>` can point at it — buttons are labelable. */
+  id?: string
+  /** Mirrors `aria-invalid` on a native select, for a field that failed validation. */
+  invalid?: boolean
+  /** Id of an error or hint element to announce with the control. */
+  describedBy?: string
 }
 
 export function CustomSelect({
@@ -39,7 +53,10 @@ export function CustomSelect({
   placeholder = 'Select…',
   disabled = false,
   label,
-  className = '',
+  className = SELECT_TRIGGER_APPEARANCE,
+  id: triggerId,
+  invalid,
+  describedBy,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   /** Which option the keyboard is on — distinct from which one is selected. */
@@ -140,16 +157,19 @@ export function CustomSelect({
     <div ref={rootRef} className="relative w-full">
       <button
         ref={triggerRef}
+        id={triggerId}
         type="button"
         role="combobox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
         aria-haspopup="listbox"
         aria-label={label}
+        aria-invalid={invalid}
+        aria-describedby={describedBy}
         onClick={() => (isOpen ? close() : open())}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-series-1/35 bg-series-1/8 px-3 py-2 text-left text-sm font-medium text-ink transition-colors hover:border-series-1/55 focus-visible:border-series-1 disabled:opacity-50 ${className}`}
+        className={`flex w-full items-center justify-between gap-2 text-left text-ink transition-colors disabled:opacity-50 ${className}`}
       >
         <span className="truncate">{selectedLabel}</span>
         <svg

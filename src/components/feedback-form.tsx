@@ -13,6 +13,7 @@
  * request id, which is the one thing that makes a support conversation useful.
  */
 import { useEffect, useRef, useState } from 'react'
+import { CustomSelect } from './custom-select'
 import { StarRating } from './star-rating'
 import { COMMENT_MAX_LENGTH } from '@/server/schemas/limits'
 
@@ -34,19 +35,6 @@ interface ApiError {
     requestId: string
     details?: { path: string; message: string }[]
   }
-}
-
-/**
- * Decoration for the category list, keyed by slug. Falls back to a generic mark, so
- * a category added to the database later still renders rather than showing a gap.
- */
-const CATEGORY_ICONS: Record<string, string> = {
-  product: '🎯',
-  feature_request: '✨',
-  bug: '🐛',
-  support: '🆘',
-  billing: '💰',
-  other: '💬',
 }
 
 export function FeedbackForm({ categories }: FeedbackFormProps) {
@@ -211,25 +199,21 @@ export function FeedbackForm({ categories }: FeedbackFormProps) {
         <label htmlFor="categorySlug" className="block text-sm font-bold text-ink mb-1.5">
           📌 What is this about?
         </label>
-        <div className="relative">
-          <select
-            id="categorySlug"
-            name="categorySlug"
-            value={categorySlug}
-            onChange={(event) => setCategorySlug(event.target.value)}
-            aria-invalid={Boolean(fieldErrors.categorySlug)}
-            aria-describedby={fieldErrors.categorySlug ? 'categorySlug-error' : undefined}
-            className="w-full appearance-none rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/8 to-series-1/3 px-3 py-2.5 text-ink font-medium transition-all hover:border-series-1/60 focus:border-series-1 focus:ring-2 focus:ring-series-1/30 focus:outline-none cursor-pointer"
-          >
-            <option value="">✨ Choose a category…</option>
-            {categories.map((category) => (
-              <option key={category.slug} value={category.slug}>
-                {CATEGORY_ICONS[category.slug] || '💬'} {category.label}
-              </option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm">▼</span>
-        </div>
+        <CustomSelect
+          id="categorySlug"
+          label="What is this about?"
+          value={categorySlug}
+          onChange={setCategorySlug}
+          disabled={submitting}
+          placeholder="Choose a category…"
+          invalid={Boolean(fieldErrors.categorySlug)}
+          describedBy={fieldErrors.categorySlug ? 'categorySlug-error' : undefined}
+          className="rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/8 to-series-1/3 px-3 py-2.5 font-medium hover:border-series-1/60 focus-visible:border-series-1"
+          options={categories.map((category) => ({
+            value: category.slug,
+            label: category.label,
+          }))}
+        />
         {fieldErrors.categorySlug && (
           <p id="categorySlug-error" className="mt-1.5 text-sm font-semibold text-status-critical animate-pulse">
             ⚠️ {fieldErrors.categorySlug}

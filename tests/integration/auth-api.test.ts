@@ -6,7 +6,7 @@
  * forgotten — plus the two failure modes that matter: wrong credentials, and someone
  * trying every password they can think of.
  */
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SESSION_COOKIE_NAME } from '@/server/lib/session'
 import { createTestDatabase, resetTestData, type TestDatabase } from '../helpers/db'
 import { cookieJar, cookiesStub } from '../helpers/cookies'
@@ -50,6 +50,11 @@ beforeEach(async () => {
   cookieJar.clear()
 })
 
+// A no-op unless a test pinned the clock, and it still runs when one fails.
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 describe('POST /api/auth/login', () => {
   it('signs in with correct credentials and sets a session cookie', async () => {
     const response = await attemptLogin(CORRECT)
@@ -88,7 +93,16 @@ describe('POST /api/auth/login', () => {
     expect((await attemptLogin({})).status).toBe(422)
   })
 
+  /**
+   * Clock pinned mid-window, for the same reason as the feedback burst: the
+   * limiter's windows are epoch-aligned, so eleven attempts that cross a boundary
+   * are split across two counters and the eleventh is correctly allowed.
+   */
   it('rate limits repeated attempts from one address', async () => {
+    // Only `Date` is faked: PGlite's own timers and promises must keep running.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(Math.floor(Date.now() / 900_000) * 900_000 + 30_000))
+
     const address = nextAddress()
 
     for (let attempt = 1; attempt <= 10; attempt += 1) {

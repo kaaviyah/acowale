@@ -13,10 +13,13 @@
 interface KpiTileProps {
   label: string
   value: string
+  /** Small caption under the value, e.g. how many submissions carried a rating. */
   hint?: string
   delta?: {
     text: string
+    /** `neutral` when up isn't necessarily good. */
     tone: 'neutral' | 'good' | 'bad'
+    /** What the change is measured against. */
     comparedWith: string
   }
 }

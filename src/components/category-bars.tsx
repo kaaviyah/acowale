@@ -39,6 +39,8 @@ export function CategoryBars({ rows, total }: CategoryBarsProps) {
     )
   }
 
+  // Bars are scaled to the largest category, not to the total: with six categories
+  // sharing 100%, scaling by share would leave every bar short and hard to compare.
   const largest = Math.max(...rows.map((row) => row.count), 1)
 
   return (

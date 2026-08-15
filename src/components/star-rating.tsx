@@ -33,19 +33,19 @@ export function StarRating({ value, onChange, disabled = false }: StarRatingProp
 
   return (
     <fieldset disabled={disabled} className="min-w-0">
-      <legend className="text-sm font-bold text-ink mb-3">
+      <legend className="text-sm font-bold text-ink mb-2">
         ⭐ How would you rate your experience?{' '}
         <span className="font-normal text-ink-secondary text-xs">(optional)</span>
       </legend>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1">
         {STARS.map((star) => {
           const selected = value !== null && star <= value
 
           return (
             <label
               key={star}
-              className="group cursor-pointer p-2 rounded-lg transition-all hover:bg-status-warning/10"
+              className="group cursor-pointer p-1 rounded-lg transition-all hover:bg-status-warning/10"
               title={LABELS[star]}
             >
               <input
@@ -61,7 +61,7 @@ export function StarRating({ value, onChange, disabled = false }: StarRatingProp
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 className={[
-                  'h-12 w-12 transition-all',
+                  'h-8 w-8 transition-all',
                   'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-series-1',
                   selected ? 'text-status-warning drop-shadow-lg scale-110' : 'text-baseline hover:text-status-warning/50',
                   disabled ? '' : 'group-hover:scale-125 group-hover:text-status-warning/80',
@@ -84,7 +84,7 @@ export function StarRating({ value, onChange, disabled = false }: StarRatingProp
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="ml-2 rounded-lg px-3 py-2 text-sm text-ink-secondary font-bold underline underline-offset-2 hover:text-series-1 hover:bg-series-1/10 transition-all"
+            className="ml-1 rounded-lg px-2 py-1 text-xs text-ink-secondary font-bold underline underline-offset-2 hover:text-series-1 hover:bg-series-1/10 transition-all"
           >
             Clear
           </button>

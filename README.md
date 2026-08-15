@@ -198,17 +198,9 @@ leading-wildcard search is a guaranteed sequential scan.
 
 ---
 
-## Production readiness
+## Deployment
 
-**Configuration.** Every variable is parsed through a Zod schema on first use and checked
-at boot from [`src/instrumentation.ts`](src/instrumentation.ts), which logs one fatal line
-naming every variable that failed. It does not crash the process: `/api/health` stays up and
-`/api/health/ready` reports `"status":"misconfigured"`, so a bad deployment can be diagnosed
-from outside instead of returning opaque 500s everywhere. Nothing is served insecurely as a
-result — every route that needs configuration still fails closed. `pnpm check-env` gives the
-same verdict locally, and flags the mistakes that actually happen when pasting into a hosting
-dashboard: wrapping quotes, a stray variable name, a `$`-mangled password hash. In production
-the app also refuses the `.env.example` placeholder secrets.
+Vercel for the app, Neon for Postgres, deployed from `main`.
 
 | Variable | Required | Notes |
 |---|---|---|
@@ -221,42 +213,6 @@ the app also refuses the `.env.example` placeholder secrets.
 | `RATE_LIMIT_SALT` | yes | ≥ 16 chars |
 | `LOG_LEVEL` | no | Default `info`; `silent` in tests |
 | `APP_VERSION` | no | Falls back to `VERCEL_GIT_COMMIT_SHA`, surfaced by `/api/health` |
-
-**Errors.** [`withApi`](src/server/lib/with-api.ts) wraps every handler: a `ZodError`
-becomes a 422 naming the offending fields, an `AppError` becomes its own status, and anything
-unexpected becomes an opaque 500 with the stack trace in the logs and a request id in the
-response. Stack traces never reach a client.
-
-**Logging.** One JSON line per request to stdout, carrying `requestId`, `route`, `status`
-and `durationMs`. `requestId` is reused from an inbound `x-request-id` when present, so a
-trace survives across hops. Comment text and email addresses are redacted — logs are
-replicated and widely readable, and shouldn't quietly become a second copy of user data.
-
-**Validation.** One Zod schema per operation, shared by the API and the form, with `CHECK`
-constraints in the database as the backstop. There is a test asserting the database rejects a
-rating of 9 even when the API is bypassed entirely.
-
-**Rate limiting.** A fixed-window counter in Postgres, one atomic
-`INSERT … ON CONFLICT DO UPDATE`. An in-memory counter would be worse than useless here:
-serverless instances share no memory, so it would under-count silently in production while
-looking correct in development.
-
-**Auth.** One admin, an scrypt hash in configuration, and a signed JWT in an
-`HttpOnly; Secure; SameSite=Lax` cookie. `SameSite=Lax` means a cross-site `POST` or `PATCH`
-never carries the cookie, which is what makes the admin mutations CSRF-safe without a
-separate token. Verification pins `HS256`, because accepting whatever algorithm a token
-claims is the classic JWT bypass — there's a test for that too.
-
-**Tests.** 112 of them. The integration tests run the committed migrations into PGlite and
-call the route handlers directly, so they cover validation, rate limiting, real SQL and error
-translation without a server. Two of the more useful assertions: the trend chart's values sum
-to the headline total, and searching for `100%` doesn't match every row.
-
----
-
-## Deployment
-
-Vercel for the app, Neon for Postgres, deployed from `main`.
 
 1. **Neon** — create a project, then copy both connection strings. The **pooled** one is
    `DATABASE_URL`; the **direct** one is `DATABASE_URL_UNPOOLED`. Pick the region nearest the

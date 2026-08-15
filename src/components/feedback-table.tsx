@@ -19,7 +19,6 @@ interface FeedbackTableProps {
   pageSize: number
   total: number
   hasMore: boolean
-  /** Builds a link to another page, preserving the active filters. */
   pageHref: (page: number) => string
 }
 
@@ -33,9 +32,9 @@ export function FeedbackTable({
 }: FeedbackTableProps) {
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-hairline bg-surface p-10 text-center">
-        <p className="font-medium text-ink">Nothing matches these filters</p>
-        <p className="mt-1 text-sm text-ink-secondary">
+      <div className="rounded-2xl border-2 border-series-1/20 bg-gradient-to-br from-series-1/10 to-series-1/5 p-12 text-center shadow-lg shadow-series-1/10">
+        <p className="text-2xl font-bold text-ink">📭 Nothing matches these filters</p>
+        <p className="mt-2 text-sm text-ink-secondary">
           Try a wider period, or clear the search term.
         </p>
       </div>
@@ -46,71 +45,72 @@ export function FeedbackTable({
   const lastOnPage = Math.min(page * pageSize, total)
 
   return (
-    <div className="overflow-hidden rounded-xl border border-hairline bg-surface">
+    <div className="overflow-hidden rounded-2xl border-2 border-series-1/30 bg-gradient-to-b from-surface to-series-1/5 shadow-xl shadow-series-1/15">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <caption className="sr-only">
             Feedback submissions, {firstOnPage} to {lastOnPage} of {total}
           </caption>
-          <thead className="border-b border-hairline bg-page text-left text-ink-secondary">
+          <thead className="border-b-2 border-series-1/30 bg-gradient-to-r from-series-1/15 via-series-1/10 to-series-1/5 text-left text-ink">
             <tr>
-              <th scope="col" className="px-4 py-3 font-medium">
-                Feedback
+              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
+                💭 Feedback
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
-                Category
+              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
+                📌 Category
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
-                Rating
+              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
+                ⭐ Rating
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
-                Received
+              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
+                📅 Received
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
-                Status
+              <th scope="col" className="px-5 py-4 font-black text-sm uppercase tracking-wider">
+                🏷️ Status
               </th>
-              <th scope="col" className="px-4 py-3 text-right font-medium">
-                Change
+              <th scope="col" className="px-5 py-4 text-right font-black text-sm uppercase tracking-wider">
+                ⚙️ Action
               </th>
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr key={item.id} className="border-b border-hairline last:border-b-0 align-top">
-                <td className="max-w-md px-4 py-3">
-                  <p className="text-ink">{item.comment}</p>
+              <tr
+                key={item.id}
+                className="border-b border-series-1/10 hover:bg-gradient-to-r hover:from-series-1/8 hover:to-series-1/3 transition-all hover:shadow-md last:border-b-0 align-top"
+              >
+                <td className="max-w-md px-5 py-4">
+                  <p className="text-ink font-bold line-clamp-2">{item.comment}</p>
                   {item.email && (
-                    <p className="mt-1 text-xs text-ink-muted">
-                      {/* Contactable submissions are the actionable ones. */}
-                      <a href={`mailto:${item.email}`} className="underline underline-offset-2">
-                        {item.email}
+                    <p className="mt-2 text-xs font-semibold">
+                      <a href={`mailto:${item.email}`} className="text-series-1 underline underline-offset-2 hover:text-series-1/70">
+                        📧 {item.email}
                       </a>
                     </p>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-ink-secondary">
-                  {item.categoryLabel}
+                <td className="whitespace-nowrap px-5 py-4 text-ink font-bold">
+                  <span className="inline-block px-3 py-1 rounded-full bg-series-1/10 border border-series-1/20">
+                    {item.categoryLabel}
+                  </span>
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 tabular-nums text-ink-secondary">
+                <td className="whitespace-nowrap px-5 py-4 tabular-nums">
                   {item.rating === null ? (
-                    <span className="text-ink-muted">—</span>
+                    <span className="text-ink-muted font-bold">—</span>
                   ) : (
-                    <>
-                      <span aria-hidden="true" className="text-status-warning">
-                        ★
-                      </span>{' '}
-                      {item.rating}
-                      <span className="sr-only"> out of 5</span>
-                    </>
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-status-warning/15 border border-status-warning/30">
+                      <span aria-hidden="true" className="text-lg">⭐</span>
+                      <span className="font-bold text-status-warning">{item.rating}/5</span>
+                    </span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 tabular-nums text-ink-secondary">
-                  <time dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
+                <td className="whitespace-nowrap px-5 py-4 tabular-nums font-medium text-ink-secondary">
+                  <time dateTime={item.createdAt} className="font-bold">{formatDateTime(item.createdAt)}</time>
                 </td>
-                <td className="whitespace-nowrap px-4 py-3">
+                <td className="whitespace-nowrap px-5 py-4">
                   <StatusBadge status={item.status} />
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-5 py-4 text-right">
                   <StatusControl
                     id={item.id}
                     status={item.status}
@@ -125,34 +125,36 @@ export function FeedbackTable({
 
       <nav
         aria-label="Pagination"
-        className="flex items-center justify-between gap-4 border-t border-hairline px-4 py-3 text-sm"
+        className="flex items-center justify-between gap-4 border-t-2 border-series-1/20 bg-gradient-to-r from-series-1/10 to-series-1/5 px-5 py-4 text-sm"
       >
-        <p className="text-ink-secondary tabular-nums">
-          {formatCount(firstOnPage)}–{formatCount(lastOnPage)} of {formatCount(total)}
+        <p className="text-ink-secondary tabular-nums font-bold">
+          Showing {formatCount(firstOnPage)}–{formatCount(lastOnPage)} of {formatCount(total)}
         </p>
         <div className="flex gap-2">
           {page > 1 ? (
             <Link
               href={pageHref(page - 1)}
-              className="rounded-lg border border-hairline px-3 py-1.5 text-ink hover:bg-page"
+              scroll={false}
+              className="rounded-lg border-2 border-series-1/40 bg-gradient-to-r from-series-1/15 to-series-1/5 px-4 py-2 text-series-1 font-bold hover:border-series-1/60 hover:bg-series-1/20 transition-all hover:shadow-md"
             >
-              Previous
+              ← Previous
             </Link>
           ) : (
-            <span className="rounded-lg border border-hairline px-3 py-1.5 text-ink-muted">
-              Previous
+            <span className="rounded-lg border-2 border-series-1/20 px-4 py-2 text-ink-muted font-bold bg-ink-muted/5">
+              ← Previous
             </span>
           )}
           {hasMore ? (
             <Link
               href={pageHref(page + 1)}
-              className="rounded-lg border border-hairline px-3 py-1.5 text-ink hover:bg-page"
+              scroll={false}
+              className="rounded-lg border-2 border-series-1/40 bg-gradient-to-r from-series-1/15 to-series-1/5 px-4 py-2 text-series-1 font-bold hover:border-series-1/60 hover:bg-series-1/20 transition-all hover:shadow-md"
             >
-              Next
+              Next →
             </Link>
           ) : (
-            <span className="rounded-lg border border-hairline px-3 py-1.5 text-ink-muted">
-              Next
+            <span className="rounded-lg border-2 border-series-1/20 px-4 py-2 text-ink-muted font-bold bg-ink-muted/5">
+              Next →
             </span>
           )}
         </div>

@@ -24,38 +24,35 @@ export default async function FeedbackPage() {
   const categories = await listCategories()
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-16">
-      <header className="mb-8">
-        <p className="text-sm font-medium uppercase tracking-wide text-series-1">Acowale</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-          We value your feedback
+    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-12 sm:py-20">
+      <header className="mb-12 text-center">
+        <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-series-1/20 to-series-1/10 border border-series-1/30 mb-4">
+          <p className="text-xs font-black uppercase tracking-widest text-series-1">💬 Acowale Feedback</p>
+        </div>
+        <h1 className="mt-4 text-6xl font-black tracking-tight text-ink whitespace-nowrap">
+          We <span className="bg-gradient-to-r from-series-1 to-series-1/60 bg-clip-text text-transparent">value</span> your feedback
         </h1>
-        <p className="mt-3 text-lg text-ink-secondary">
-          Help us improve by sharing your experience. It takes less than a minute, and a real person
-          reads every submission.
+        <p className="mt-6 text-xl text-ink-secondary leading-relaxed max-w-lg mx-auto">
+          Help us improve by sharing your experience. It takes less than a minute, and a real person reads every single submission. 👀
         </p>
       </header>
 
       {categories.length > 0 ? (
         <FeedbackForm categories={categories} />
       ) : (
-        /*
-         * Reference data is missing — the form would be unusable, so say so plainly
-         * rather than rendering an empty dropdown that fails on submit.
-         */
-        <div className="rounded-xl border border-hairline bg-surface p-6 text-ink-secondary">
-          <h2 className="font-medium text-ink">The form is not available right now</h2>
-          <p className="mt-2">
-            No feedback categories have been configured yet. If you are running this locally, seed
-            them with <code className="font-mono text-sm">pnpm db:seed</code>.
+        <div className="rounded-2xl border-2 border-series-1/20 bg-gradient-to-br from-series-1/10 to-series-1/5 p-10 text-center shadow-lg shadow-series-1/10">
+          <h2 className="font-black text-lg text-ink">⚙️ The form is not available right now</h2>
+          <p className="mt-3 text-ink-secondary">
+            No feedback categories have been configured yet. If you are running this locally, seed them with{' '}
+            <code className="font-bold text-series-1 bg-black/10 px-3 py-1 rounded-lg inline-block mt-2">pnpm db:seed</code>.
           </p>
         </div>
       )}
 
-      <footer className="mt-10 flex items-center justify-between border-t border-hairline pt-6 text-sm text-ink-muted">
-        <span>Acowale CRM · Machine test build</span>
-        <Link href="/admin" className="underline underline-offset-2 hover:text-ink">
-          Team sign in
+      <footer className="mt-16 flex flex-col items-center justify-center border-t-2 border-series-1/10 pt-10 text-sm text-ink-muted gap-4">
+        <span className="font-bold">🚀 Acowale CRM · Machine test build</span>
+        <Link href="/admin" className="text-series-1 underline underline-offset-2 hover:text-series-1/70 font-bold transition-colors text-base">
+          👨‍💼 Team sign in
         </Link>
       </footer>
     </main>

@@ -10,15 +10,23 @@
  *   `ListFilters` sits in the submissions card and scopes only the list below it,
  *   which is a working queue rather than a chart. The card header says so.
  *
- * Both are plain GET forms: submitting changes the URL, the server re-renders, and
- * the resulting view is a shareable link with a working back button. Each form
- * carries the other's state in hidden fields so neither wipes the other.
+ * Both navigate rather than submit: every control writes the full filter state into
+ * the URL, so the view stays a shareable link with a working back button. Each one
+ * carries the other's parameters through, so neither wipes the other.
+ *
+ * Navigation passes `scroll: false` throughout. These controls sit halfway down a
+ * long page, and the default scroll-to-top would throw the reader back to the header
+ * every time they narrowed the list.
  */
-import Link from 'next/link'
+'use client'
+
+import { useEffect, useRef, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { RANGE_LABELS, STATUS_LABELS } from '@/lib/format'
 import { RANGE_KEYS } from '@/server/lib/time'
 import { SEARCH_MAX_LENGTH } from '@/server/schemas/limits'
 import type { CategoryOption } from '@/server/repos/categories'
+import { CustomSelect } from './custom-select'
 
 export interface DashboardFilters {
   range: string
@@ -27,53 +35,36 @@ export interface DashboardFilters {
   status?: string
 }
 
-const FIELD_CLASS = 'rounded-lg border border-baseline bg-surface px-3 py-2 text-sm text-ink'
-
-/** Keeps the list filters alive when the period form is submitted, and vice versa. */
-function HiddenFields({ values }: { values: Record<string, string | undefined> }) {
-  return (
-    <>
-      {Object.entries(values)
-        .filter(([, value]) => Boolean(value))
-        .map(([name, value]) => (
-          <input key={name} type="hidden" name={name} value={value} />
-        ))}
-    </>
-  )
-}
-
 export function PeriodPicker({ filters }: { filters: DashboardFilters }) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+
+  const handlePeriodChange = (range: string) => {
+    const params = new URLSearchParams({ range })
+    // Carry the list filters through, so changing the period doesn't clear them.
+    if (filters.q) params.set('q', filters.q)
+    if (filters.category) params.set('category', filters.category)
+    if (filters.status) params.set('status', filters.status)
+
+    startTransition(() => {
+      router.push(`/admin?${params.toString()}`, { scroll: false })
+    })
+  }
+
   return (
-    <form method="get" action="/admin" className="flex flex-wrap items-end gap-3">
-      <HiddenFields
-        values={{ q: filters.q, category: filters.category, status: filters.status }}
+    <div className="w-full sm:w-56">
+      <label className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase">
+        Period
+      </label>
+      <CustomSelect
+        label="Period"
+        value={filters.range}
+        onChange={handlePeriodChange}
+        disabled={isPending}
+        className="border-series-1/50 from-series-1/20 to-series-1/10 font-bold text-series-1"
+        options={RANGE_KEYS.map((key) => ({ value: key, label: RANGE_LABELS[key] }))}
       />
-
-      <div>
-        <label htmlFor="range" className="block text-xs font-medium text-ink-secondary">
-          Period
-        </label>
-        <select
-          id="range"
-          name="range"
-          defaultValue={filters.range}
-          className={`mt-1 ${FIELD_CLASS}`}
-        >
-          {RANGE_KEYS.map((key) => (
-            <option key={key} value={key}>
-              {RANGE_LABELS[key]}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <button
-        type="submit"
-        className="rounded-lg border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-page"
-      >
-        Update
-      </button>
-    </form>
+    </div>
   )
 }
 
@@ -84,53 +75,86 @@ export function ListFilters({
   categories: CategoryOption[]
   filters: DashboardFilters
 }) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const hasFilters = Boolean(filters.q || filters.category || filters.status)
 
-  return (
-    <form method="get" action="/admin" className="flex flex-wrap items-end gap-3">
-      {/* The period is set above; carry it through so this form doesn't reset it. */}
-      <HiddenFields values={{ range: filters.range }} />
+  /**
+   * Navigates with one filter replaced and the rest carried through. Built from
+   * `filters` rather than `FormData`, because the selects are custom listboxes
+   * rather than form fields — reading the form would silently drop them.
+   *
+   * Paging is deliberately not preserved: after narrowing the list, page 7 of the
+   * old result set is meaningless, so every change lands back on page 1.
+   */
+  function apply(changes: Partial<DashboardFilters>) {
+    const next = { ...filters, ...changes }
+    const params = new URLSearchParams({ range: next.range })
+    if (next.q) params.set('q', next.q)
+    if (next.category) params.set('category', next.category)
+    if (next.status) params.set('status', next.status)
 
-      <div>
-        <label htmlFor="category" className="block text-xs font-medium text-ink-secondary">
+    startTransition(() => {
+      router.push(`/admin?${params.toString()}`, { scroll: false })
+    })
+  }
+
+  // Search runs on a timer: navigating per keystroke would fire a query for every
+  // prefix of the word being typed and let a slow one land after a fast one.
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+  }, [])
+
+  function handleSearchChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const q = event.target.value
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => apply({ q }), 350)
+  }
+
+  return (
+    <div className="flex w-full flex-wrap items-end gap-3">
+      <div className="min-w-48 flex-1">
+        <label
+          id="category-label"
+          className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase"
+        >
           Category
         </label>
-        <select
-          id="category"
-          name="category"
-          defaultValue={filters.category ?? ''}
-          className={`mt-1 ${FIELD_CLASS}`}
-        >
-          <option value="">All categories</option>
-          {categories.map((category) => (
-            <option key={category.slug} value={category.slug}>
-              {category.label}
-            </option>
-          ))}
-        </select>
+        <CustomSelect
+          label="Category"
+          value={filters.category ?? ''}
+          onChange={(category) => apply({ category })}
+          disabled={isPending}
+          options={[
+            { value: '', label: 'All categories' },
+            ...categories.map((category) => ({ value: category.slug, label: category.label })),
+          ]}
+        />
       </div>
 
-      <div>
-        <label htmlFor="status" className="block text-xs font-medium text-ink-secondary">
+      <div className="min-w-48 flex-1">
+        <label className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase">
           Status
         </label>
-        <select
-          id="status"
-          name="status"
-          defaultValue={filters.status ?? ''}
-          className={`mt-1 ${FIELD_CLASS}`}
-        >
-          <option value="">Any status</option>
-          {Object.entries(STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+        <CustomSelect
+          label="Status"
+          value={filters.status ?? ''}
+          onChange={(status) => apply({ status })}
+          disabled={isPending}
+          options={[
+            { value: '', label: 'Any status' },
+            ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label })),
+          ]}
+        />
       </div>
 
-      <div className="min-w-52 flex-1">
-        <label htmlFor="q" className="block text-xs font-medium text-ink-secondary">
+      <div className="min-w-48 flex-1">
+        <label
+          htmlFor="q"
+          className="mb-2 block text-xs font-bold tracking-wider text-ink-secondary uppercase"
+        >
           Search comments
         </label>
         <input
@@ -139,27 +163,22 @@ export function ListFilters({
           type="search"
           defaultValue={filters.q ?? ''}
           maxLength={SEARCH_MAX_LENGTH}
+          onChange={handleSearchChange}
           placeholder="dark mode, invoice, timeout…"
-          className={`mt-1 w-full ${FIELD_CLASS} placeholder:text-ink-muted`}
+          className="w-full rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/10 to-series-1/5 px-4 py-3 text-base font-medium text-ink transition-all placeholder:text-ink-muted hover:border-series-1/60 focus:border-series-1 focus:outline-none"
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      {hasFilters && (
         <button
-          type="submit"
-          className="rounded-lg bg-series-1 px-4 py-2 text-sm font-medium text-white"
+          type="button"
+          onClick={() => apply({ q: undefined, category: undefined, status: undefined })}
+          disabled={isPending}
+          className="rounded-xl border-2 border-status-critical/40 bg-gradient-to-r from-status-critical/20 to-status-critical/10 px-6 py-3 text-sm font-black text-status-critical transition-all hover:border-status-critical/60 hover:from-status-critical/30 hover:to-status-critical/20 disabled:opacity-50"
         >
-          Filter
+          Clear
         </button>
-        {hasFilters && (
-          <Link
-            href={`/admin?range=${filters.range}`}
-            className="px-2 py-2 text-sm text-ink-secondary underline underline-offset-2 hover:text-ink"
-          >
-            Clear
-          </Link>
-        )}
-      </div>
-    </form>
+      )}
+    </div>
   )
 }

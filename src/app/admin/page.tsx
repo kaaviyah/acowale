@@ -81,23 +81,25 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">Overview</h1>
-          <p className="mt-1 text-sm text-ink-secondary">
-            Customer feedback for the {periodLabel}, by {summary.timeZone.replace('_', ' ')} days.
+          <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-series-1/20 to-series-1/10 border border-series-1/30 mb-4">
+            <p className="text-xs font-black uppercase tracking-widest text-series-1">📊 Dashboard</p>
+          </div>
+          <h1 className="text-4xl font-black tracking-tight text-ink bg-gradient-to-r from-series-1 to-series-1/60 bg-clip-text text-transparent">Overview</h1>
+          <p className="mt-2 text-base text-ink-secondary font-medium">
+            Customer feedback for the <span className="font-bold text-series-1">{periodLabel}</span>, by <span className="font-bold">{summary.timeZone.replace('_', ' ')}</span> days.
           </p>
         </div>
         <PeriodPicker filters={filters} />
       </div>
 
-      <section aria-label="Headline numbers" className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Headline numbers" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-10">
         <KpiTile
           label="Total feedback"
           value={formatCount(summary.totals.count)}
           delta={{
             text: formatDelta(summary.deltas.countPct),
-            // More feedback is not self-evidently good or bad, so it stays neutral.
             tone: 'neutral',
             comparedWith: `vs ${formatCount(summary.deltas.previousCount)} in the previous period`,
           }}
@@ -115,7 +117,6 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
                   text: `${summary.deltas.avgRatingDelta > 0 ? '+' : ''}${
                     summary.deltas.avgRatingDelta
                   }`,
-                  // Here the direction does mean better or worse.
                   tone: summary.deltas.avgRatingDelta >= 0 ? 'good' : 'bad',
                   comparedWith: 'stars vs previous period',
                 }
@@ -135,15 +136,18 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
         />
       </section>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-5">
+      <div className="grid gap-4 lg:grid-cols-5 mb-10">
         <section
           aria-labelledby="trend-heading"
-          className="rounded-xl border border-hairline bg-surface p-5 lg:col-span-3"
+          className="rounded-2xl border-2 border-series-1/30 bg-gradient-to-br from-surface via-surface to-series-1/5 p-7 shadow-xl shadow-series-1/15 lg:col-span-3"
         >
-          <h2 id="trend-heading" className="font-medium text-ink">
-            Submissions per day
-          </h2>
-          <p className="mt-1 mb-2 text-sm text-ink-secondary">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">📈</span>
+            <h2 id="trend-heading" className="font-black text-ink text-lg">
+              Submissions per day
+            </h2>
+          </div>
+          <p className="mt-1 mb-4 text-sm text-ink-secondary font-medium">
             {RANGE_LABELS[range]}, in {summary.timeZone.replace('_', ' ')} time
           </p>
           <TrendChart points={summary.trend} />
@@ -151,26 +155,31 @@ export default async function DashboardPage(props: PageProps<'/admin'>) {
 
         <section
           aria-labelledby="category-heading"
-          className="rounded-xl border border-hairline bg-surface p-5 lg:col-span-2"
+          className="rounded-2xl border-2 border-series-1/30 bg-gradient-to-br from-surface via-surface to-series-1/5 p-7 shadow-xl shadow-series-1/15 lg:col-span-2"
         >
-          <h2 id="category-heading" className="font-medium text-ink">
-            Where feedback is coming from
-          </h2>
-          <p className="mt-1 mb-4 text-sm text-ink-secondary">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">🎯</span>
+            <h2 id="category-heading" className="font-black text-ink text-lg">
+              Where feedback comes from
+            </h2>
+          </div>
+          <p className="mt-1 mb-5 text-sm text-ink-secondary font-medium">
             Bars are scaled to the busiest category.
           </p>
           <CategoryBars rows={summary.byCategory} total={summary.totals.count} />
         </section>
       </div>
 
-      <section aria-labelledby="submissions-heading" className="mt-8">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
+      <section aria-labelledby="submissions-heading">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 id="submissions-heading" className="font-medium text-ink">
-              Submissions
-            </h2>
-            <p className="mt-1 text-sm text-ink-secondary">
-              {/* Say plainly that this list is scoped differently from the charts. */}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">💬</span>
+              <h2 id="submissions-heading" className="font-black text-ink text-lg">
+                Recent Submissions
+              </h2>
+            </div>
+            <p className="mt-1 text-sm text-ink-secondary font-medium">
               Every submission, newest first. These filters apply to this list only — the charts
               above always describe the whole period.
             </p>

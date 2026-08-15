@@ -36,6 +36,19 @@ interface ApiError {
   }
 }
 
+/**
+ * Decoration for the category list, keyed by slug. Falls back to a generic mark, so
+ * a category added to the database later still renders rather than showing a gap.
+ */
+const CATEGORY_ICONS: Record<string, string> = {
+  product: '🎯',
+  feature_request: '✨',
+  bug: '🐛',
+  support: '🆘',
+  billing: '💰',
+  other: '💬',
+}
+
 export function FeedbackForm({ categories }: FeedbackFormProps) {
   const [categorySlug, setCategorySlug] = useState('')
   const [comment, setComment] = useState('')
@@ -146,27 +159,27 @@ export function FeedbackForm({ categories }: FeedbackFormProps) {
 
   if (submitted) {
     return (
-      <div className="rounded-xl border border-hairline bg-surface p-8 text-center">
+      <div className="rounded-2xl border-2 border-status-good/40 bg-gradient-to-br from-status-good/15 via-status-good/8 to-transparent p-10 text-center shadow-2xl shadow-status-good/20">
         <div
           aria-hidden="true"
-          className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-good/15 text-2xl text-status-good"
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-status-good/30 to-status-good/10 text-5xl shadow-xl shadow-status-good/30 animate-bounce"
         >
           ✓
         </div>
         <h2
           ref={successHeading}
           tabIndex={-1}
-          className="mt-4 text-xl font-semibold text-ink outline-none"
+          className="mt-6 text-3xl font-bold text-ink outline-none"
         >
-          Thank you — that&rsquo;s been passed on.
+          Thank you! 🎉
         </h2>
-        <p className="mt-2 text-ink-secondary">
-          Every submission is read by the team. If you left an email address, we may follow up.
+        <p className="mt-3 text-lg text-ink-secondary">
+          Your feedback is super valuable to us. Every submission is read by the team, and if you left an email, we may follow up.
         </p>
         <button
           type="button"
           onClick={resetForm}
-          className="mt-6 rounded-lg border border-hairline px-4 py-2 font-medium text-ink hover:bg-page"
+          className="mt-8 rounded-xl border-2 border-series-1/50 bg-gradient-to-r from-series-1/20 to-series-1/10 px-6 py-3 font-bold text-series-1 hover:from-series-1/30 hover:to-series-1/20 hover:shadow-lg transition-all transform hover:scale-105"
         >
           Send more feedback
         </button>
@@ -178,59 +191,64 @@ export function FeedbackForm({ categories }: FeedbackFormProps) {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="space-y-6 rounded-xl border border-hairline bg-surface p-6 sm:p-8"
+      className="space-y-6 rounded-2xl border-2 border-series-1/30 bg-gradient-to-br from-surface via-surface to-series-1/5 p-8 sm:p-10 shadow-2xl shadow-series-1/20"
     >
       {formError && (
         <div
           role="alert"
-          className="rounded-lg border border-status-critical/40 bg-status-critical/10 p-3 text-sm text-ink"
+          className="rounded-xl border-2 border-status-critical/40 bg-gradient-to-r from-status-critical/15 to-status-critical/5 p-4 text-sm text-ink animate-pulse"
         >
-          <p className="font-medium">{formError}</p>
+          <p className="font-bold">⚠️ {formError}</p>
           {reference && (
-            <p className="mt-1 text-ink-secondary">
-              Reference: <code className="font-mono">{reference}</code>
+            <p className="mt-2 text-ink-secondary">
+              Reference: <code className="font-mono bg-black/10 px-2 py-1 rounded">{reference}</code>
             </p>
           )}
         </div>
       )}
 
       <div>
-        <label htmlFor="categorySlug" className="block text-sm font-medium text-ink">
-          What is this about?
+        <label htmlFor="categorySlug" className="block text-sm font-bold text-ink mb-2">
+          📌 What is this about?
         </label>
-        <select
-          id="categorySlug"
-          name="categorySlug"
-          value={categorySlug}
-          onChange={(event) => setCategorySlug(event.target.value)}
-          aria-invalid={Boolean(fieldErrors.categorySlug)}
-          aria-describedby={fieldErrors.categorySlug ? 'categorySlug-error' : undefined}
-          className="mt-2 w-full rounded-lg border border-baseline bg-surface px-3 py-2.5 text-ink"
-        >
-          <option value="">Choose a category…</option>
-          {categories.map((category) => (
-            <option key={category.slug} value={category.slug}>
-              {category.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            id="categorySlug"
+            name="categorySlug"
+            value={categorySlug}
+            onChange={(event) => setCategorySlug(event.target.value)}
+            aria-invalid={Boolean(fieldErrors.categorySlug)}
+            aria-describedby={fieldErrors.categorySlug ? 'categorySlug-error' : undefined}
+            className="mt-2 w-full appearance-none rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/8 to-series-1/3 px-4 py-3 text-ink font-medium transition-all hover:border-series-1/60 focus:border-series-1 focus:ring-2 focus:ring-series-1/30 focus:outline-none cursor-pointer"
+          >
+            <option value="">✨ Choose a category…</option>
+            {categories.map((category) => (
+              <option key={category.slug} value={category.slug}>
+                {CATEGORY_ICONS[category.slug] || '💬'} {category.label}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl">▼</span>
+        </div>
         {fieldErrors.categorySlug && (
-          <p id="categorySlug-error" className="mt-1.5 text-sm text-status-critical">
-            {fieldErrors.categorySlug}
+          <p id="categorySlug-error" className="mt-2 text-sm font-semibold text-status-critical animate-pulse">
+            ⚠️ {fieldErrors.categorySlug}
           </p>
         )}
       </div>
 
-      <StarRating value={rating} onChange={setRating} disabled={submitting} />
+      <div className="bg-gradient-to-r from-status-warning/10 to-series-1/10 rounded-xl p-5 border border-status-warning/20">
+        <StarRating value={rating} onChange={setRating} disabled={submitting} />
+      </div>
 
       <div>
-        <div className="flex items-baseline justify-between gap-4">
-          <label htmlFor="comment" className="block text-sm font-medium text-ink">
-            Tell us more
+        <div className="flex items-baseline justify-between gap-4 mb-2">
+          <label htmlFor="comment" className="block text-sm font-bold text-ink">
+            💭 Tell us more
           </label>
           <span
-            className={`text-xs tabular-nums ${
-              remaining < 0 ? 'text-status-critical' : 'text-ink-muted'
+            className={`text-xs font-bold tabular-nums px-3 py-1 rounded-full ${
+              remaining < 0 ? 'bg-status-critical/20 text-status-critical' : 'bg-series-1/10 text-series-1'
             }`}
           >
             {comment.length} / {COMMENT_MAX_LENGTH}
@@ -245,18 +263,18 @@ export function FeedbackForm({ categories }: FeedbackFormProps) {
           placeholder="What worked, what didn't, what you wish existed…"
           aria-invalid={Boolean(fieldErrors.comment)}
           aria-describedby={fieldErrors.comment ? 'comment-error' : undefined}
-          className="mt-2 w-full resize-y rounded-lg border border-baseline bg-surface px-3 py-2.5 text-ink placeholder:text-ink-muted"
+          className="mt-2 w-full resize-y rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/8 to-series-1/3 px-4 py-3 text-ink placeholder:text-ink-muted transition-all hover:border-series-1/60 focus:border-series-1 focus:ring-2 focus:ring-series-1/30 focus:outline-none"
         />
         {fieldErrors.comment && (
-          <p id="comment-error" className="mt-1.5 text-sm text-status-critical">
-            {fieldErrors.comment}
+          <p id="comment-error" className="mt-2 text-sm font-semibold text-status-critical animate-pulse">
+            ⚠️ {fieldErrors.comment}
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-ink">
-          Your email <span className="font-normal text-ink-secondary">(optional)</span>
+        <label htmlFor="email" className="block text-sm font-bold text-ink mb-2">
+          📧 Your email <span className="font-normal text-ink-secondary text-xs">(optional)</span>
         </label>
         <input
           id="email"
@@ -268,15 +286,15 @@ export function FeedbackForm({ categories }: FeedbackFormProps) {
           placeholder="you@example.com"
           aria-invalid={Boolean(fieldErrors.email)}
           aria-describedby={fieldErrors.email ? 'email-error' : 'email-hint'}
-          className="mt-2 w-full rounded-lg border border-baseline bg-surface px-3 py-2.5 text-ink placeholder:text-ink-muted"
+          className="mt-2 w-full rounded-xl border-2 border-series-1/40 bg-gradient-to-br from-series-1/8 to-series-1/3 px-4 py-3 text-ink placeholder:text-ink-muted transition-all hover:border-series-1/60 focus:border-series-1 focus:ring-2 focus:ring-series-1/30 focus:outline-none"
         />
         {fieldErrors.email ? (
-          <p id="email-error" className="mt-1.5 text-sm text-status-critical">
-            {fieldErrors.email}
+          <p id="email-error" className="mt-2 text-sm font-semibold text-status-critical animate-pulse">
+            ⚠️ {fieldErrors.email}
           </p>
         ) : (
-          <p id="email-hint" className="mt-1.5 text-sm text-ink-secondary">
-            Only used if we need to follow up. Leave it blank to stay anonymous.
+          <p id="email-hint" className="mt-2 text-xs text-ink-secondary">
+            🔒 Only used if we need to follow up. Leave blank to stay anonymous.
           </p>
         )}
       </div>
@@ -299,17 +317,16 @@ export function FeedbackForm({ categories }: FeedbackFormProps) {
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 border-t border-hairline pt-5">
+      <div className="flex flex-wrap items-center gap-4 border-t-2 border-series-1/20 pt-6">
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-series-1 px-5 py-2.5 font-medium text-white disabled:opacity-60"
+          className="rounded-xl bg-gradient-to-r from-series-1 via-series-1/90 to-series-1/70 px-8 py-4 font-bold text-white shadow-xl shadow-series-1/40 hover:shadow-2xl hover:shadow-series-1/50 disabled:opacity-50 transition-all hover:scale-105 transform text-lg"
         >
-          {submitting ? 'Sending…' : 'Send feedback'}
+          {submitting ? '⏳ Sending…' : '🚀 Send Feedback'}
         </button>
-        <p className="text-sm text-ink-secondary">
-          {/* Say what happens to the data, in the place where it is given. */}
-          Goes straight to the product team. No account needed.
+        <p className="text-sm text-ink-secondary font-medium">
+          💨 Goes straight to the product team. No account needed.
         </p>
       </div>
     </form>

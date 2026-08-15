@@ -74,6 +74,7 @@ export function appVersion(): string {
  */
 export function getEnv(): Env {
   if (cached) return cached
+  
 
   const parsed = envSchema.safeParse(process.env)
 
